@@ -4,6 +4,8 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
+// Phục vụ giao diện tĩnh từ thư mục 'public'
+app.use(express.static('public'));
 
 // Kết nối tới container MySQL kèm cấu hình charset utf8mb4 để hỗ trợ tiếng Việt chuẩn xác
 const db = mysql.createConnection({
