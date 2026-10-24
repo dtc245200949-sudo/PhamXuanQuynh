@@ -7,21 +7,25 @@ app.use(express.json());
 // Phục vụ giao diện tĩnh từ thư mục 'public'
 app.use(express.static('public'));
 
-// Kết nối tới container MySQL kèm cấu hình charset utf8mb4 để hỗ trợ tiếng Việt chuẩn xác
-const db = mysql.createConnection({
+// Sử dụng connection pool để tự động quản lý kết nối, tránh lỗi timeout và mất kết nối
+const pool = mysql.createPool({
   host: process.env.DB_HOST || 'db',
-  user: process.env.DB_USER || 'ticketuser',
-  password: process.env.DB_PASSWORD || 'ticketpassword',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || 'rootpassword',
   database: process.env.DB_NAME || 'ticketdb',
-  charset: 'utf8mb4'
+  charset: 'utf8mb4',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-db.connect((err) => {
+// Kiểm tra kết nối và khởi tạo bảng khi khởi động ứng dụng
+pool.getConnection((err, connection) => {
   if (err) {
     console.error('Lỗi kết nối cơ sở dữ liệu MySQL:', err);
     return;
   }
-  console.log('Đã kết nối thành công tới MySQL Database!');
+  console.log('Đã kết nối thành công tới MySQL Database qua Pool!');
   
   // Khởi tạo bảng 'movies' (Phim)
   const createMoviesTable = `
@@ -46,25 +50,26 @@ db.connect((err) => {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `;
 
-  db.query(createMoviesTable, (err) => {
+  connection.query(createMoviesTable, (err) => {
     if (err) console.error('Lỗi tạo bảng movies:', err);
     else console.log('Bảng movies đã sẵn sàng.');
   });
 
-  db.query(createBookingsTable, (err) => {
+  connection.query(createBookingsTable, (err) => {
     if (err) console.error('Lỗi tạo bảng bookings:', err);
     else console.log('Bảng bookings đã sẵn sàng.');
+    connection.release(); // Trả lại connection cho pool sau khi khởi tạo xong
   });
 });
 
 // Trang chủ kiểm tra hệ thống
 app.get('/', (req, res) => {
-  res.send('<h1>He thong Dat ve Xem phim (De 11) đang hoat dong voi MySQL!</h1>');
+  res.send('<h1>Hệ thống Đặt vé Xem phim (Đề 11) đang hoạt động với MySQL!</h1>');
 });
 
 // --- API QUẢN LÝ PHIM ---
 app.get('/api/movies', (req, res) => {
-  db.query('SELECT * FROM movies', (err, results) => {
+  pool.query('SELECT * FROM movies', (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
   });
@@ -73,7 +78,7 @@ app.get('/api/movies', (req, res) => {
 app.post('/api/movies', (req, res) => {
   const { title, genre, price } = req.body;
   const query = 'INSERT INTO movies (title, genre, price) VALUES (?, ?, ?)';
-  db.query(query, [title, genre, price], (err, result) => {
+  pool.query(query, [title, genre, price], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.status(201).json({ message: 'Thêm phim thành công!', movieId: result.insertId });
   });
@@ -86,7 +91,7 @@ app.get('/api/bookings', (req, res) => {
     FROM bookings b 
     JOIN movies m ON b.movie_id = m.id
   `;
-  db.query(query, (err, results) => {
+  pool.query(query, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
   });
@@ -95,7 +100,7 @@ app.get('/api/bookings', (req, res) => {
 app.post('/api/bookings', (req, res) => {
   const { movie_id, customer_name, seat_number } = req.body;
   const query = 'INSERT INTO bookings (movie_id, customer_name, seat_number) VALUES (?, ?, ?)';
-  db.query(query, [movie_id, customer_name, seat_number], (err, result) => {
+  pool.query(query, [movie_id, customer_name, seat_number], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.status(201).json({ message: 'Đặt vé thành công!', bookingId: result.insertId });
   });
