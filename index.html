@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Thông Tin & Báo Cáo Đồ Án - Hệ Thống Đặt Vé Xem Phim (Đề 11)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- FORM ĐĂNG NHẬP (LOGIN MODAL) -->
+    <div id="loginSection" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 md:p-8 shadow-2xl relative">
+            <div class="text-center mb-6">
+                <div class="inline-flex bg-indigo-600/20 text-indigo-400 p-3 rounded-2xl mb-3 border border-indigo-500/30">
+                    <i class="fa-solid fa-user-shield text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Đăng Nhập Hệ Thống</h2>
+                <p class="text-xs text-slate-400 mt-1">Cổng Quản Trị & Báo Cáo Đồ Án Đề 11</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Tên đăng nhập / Username</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-user text-xs"></i></span>
+                        <input type="text" id="username" required value="admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Mật khẩu / Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-lock text-xs"></i></span>
+                        <input type="password" id="password" required value="admin123" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <div id="errorMessage" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg text-center">
+                    Tên đăng nhập hoặc mật khẩu không chính xác!
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30">
+                    Xác Nhận Đăng Nhập
+                </button>
+            </form>
+
+            <div class="mt-4 pt-4 border-t border-slate-700/60 text-center text-xs text-slate-400">
+                Gợi ý đăng nhập: <code class="text-indigo-300 bg-slate-900 px-1.5 py-0.5 rounded">admin</code> / <code class="text-indigo-300 bg-slate-900 px-1.5 py-0.5 rounded">admin123</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG TRANG WEB (DASHBOARD) -->
+    <div id="dashboardSection" class="hidden min-h-screen flex flex-col justify-between">
+        <!-- Header -->
+        <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/30">
+                        <i class="fa-solid fa-film text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight text-white">Đồ Án: Hệ Thống Đặt Vé Xem Phim (Đề 11)</h1>
+                        <p class="text-xs text-slate-400">Chạy trực tiếp trong Docker Container | MSSV: dtc245200949</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-medium rounded-full flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Docker Nginx Live
+                    </span>
+                    <button onclick="handleLogout()" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-xs font-medium px-3 py-1.5 rounded-lg border border-rose-500/30 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl w-full mx-auto px-4 py-8 space-y-8">
+            <section class="bg-gradient-to-r from-indigo-900/40 via-slate-800 to-slate-800 border border-indigo-500/20 rounded-2xl p-6 md:p-8 shadow-xl">
+                <div class="max-w-3xl">
+                    <span class="text-indigo-400 font-semibold text-xs uppercase tracking-wider bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">Authenticated Admin Session</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white mt-3 mb-2">Báo Cáo & Vận Hành Hệ Thống Docker</h2>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Trang web đã được cấu hình phục vụ trực tiếp thông qua Docker Nginx Web Server tại đường dẫn gốc.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 7 Microservices Grid -->
+            <section class="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-6 shadow-md">
+                <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-server text-indigo-400 mr-2"></i>7 Services Docker Compose Active</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700"><strong>1. Nginx</strong> (Port 80/443)</div>
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700"><strong>2. Node.js App</strong> (Port 3000)</div>
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700"><strong>3. MySQL 8.0</strong> (utf8mb4)</div>
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700"><strong>4. phpMyAdmin</strong> (Port 8080)</div>
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700"><strong>5. Prometheus</strong> (Port 9090)</div>
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700"><strong>6. Grafana</strong> (Port 3001)</div>
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 sm:col-span-2"><strong>7. Loki & Promtail</strong> (Port 3100)</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-slate-800/80 border-t border-slate-700 py-4 text-center text-xs text-slate-400">
+            Đồ án Môn học Triển khai và Quản trị Hệ thống Phần mềm - Đề 11 | Docker Stack Verified
+        </footer>
+    </div>
+
+    <!-- SCRIPT XỬ LÝ ĐĂNG NHẬP -->
+    <script>
+        function handleLogin(event) {
+            event.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMessage');
+
+            if ((user === 'admin' && pass === 'admin123') || (user === 'admin' && pass === '123456')) {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('dashboardSection').classList.remove('hidden');
+                localStorage.setItem('isLoggedIn', 'true');
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('isLoggedIn');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+        }
+
+        // Tự động giữ trạng thái nếu đã đăng nhập
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

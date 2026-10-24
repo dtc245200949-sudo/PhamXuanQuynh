@@ -1,0 +1,125 @@
+version: '3.8'
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  db_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+
+services:
+  # 1. Database MySQL
+  db:
+    image: mysql:8.0
+    container_name: ticket-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ticketdb
+      MYSQL_USER: ticketuser
+      MYSQL_PASSWORD: ticketpassword
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-net
+
+  # 2. Công cụ quản lý CSDL: phpMyAdmin (Yêu cầu bắt buộc của Đề 11)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ticket-phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8080:80"
+    networks:
+      - app-net
+    depends_on:
+      - db
+
+  # 3. Node.js Backend Application
+  app:
+    build: ./app
+    container_name: ticket-app
+    restart: always
+    environment:
+      - DB_HOST=db
+      - DB_USER=ticketuser
+      - DB_PASSWORD=ticketpassword
+      - DB_NAME=ticketdb
+    depends_on:
+      - db
+    networks:
+      - app-net
+
+  # 4. Nginx Reverse Proxy (Chỉ nhận file cấu hình default.conf để chuyển tiếp sang Node.js)
+  nginx:
+    image: nginx:alpine
+    container_name: ticket-nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - app-net
+
+  # 5. Prometheus (Giám sát)
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: ticket-prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - app-net
+
+  # 6. Grafana (Hiển thị Dashboard giám sát)
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: ticket-grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - app-net
+    depends_on:
+      - prometheus
+
+  # 7. Grafana Loki (Log tập trung)
+  loki:
+    image: grafana/loki:2.8.0
+    container_name: ticket-loki
+    restart: always
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/tmp/loki
+    networks:
+      - app-net
+
+  # 8. Promtail (Thu thập log đẩy về Loki)
+  promtail:
+    image: grafana/promtail:2.8.0
+    container_name: ticket-promtail
+    restart: always
+    volumes:
+      - ./promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - app-net
+    depends_on:
+      - loki
